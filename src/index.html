@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mac OS Key-Repeat Tester</title>
+  <style>
+    :root {
+      --bg: #1c2114;
+      --bg-raised: #232818;
+      --ink: #f3efe4;
+      --ink-dim: #d7d0c2;
+      --muted: #b7b09f;
+      --orange: #e8882c;
+      --orange-deep: #d97820;
+      --line: rgba(243, 239, 228, 0.28);
+      --track: #8d8d84;
+      --thumb: #f7f7f5;
+      --switch: #f0b429;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    body {
+      font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+      line-height: 1.45;
+    }
+
+    .wrap {
+      width: min(680px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-weight: 750;
+      font-size: 34px;
+      letter-spacing: -0.03em;
+      color: var(--orange);
+    }
+
+    .lede {
+      margin: 0 0 18px;
+      font-size: 18px;
+      color: var(--ink);
+    }
+
+    .lede em {
+      font-style: italic;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 0 0 26px;
+    }
+
+    .control {
+      max-width: 320px;
+      margin-bottom: 16px;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 15px;
+    }
+
+    .label svg {
+      flex: 0 0 auto;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #f4f4f2 var(--pct), var(--track) var(--pct));
+      outline: none;
+      margin: 8px 0 4px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--thumb);
+      border: 0;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--thumb);
+      cursor: pointer;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 28px;
+    }
+
+    .switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      border: 0;
+      padding: 0;
+      border-radius: 999px;
+      background: #6d6a62;
+      cursor: pointer;
+    }
+
+    .switch[aria-checked="true"] {
+      background: var(--switch);
+    }
+
+    .switch i {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.15s ease;
+    }
+
+    .switch[aria-checked="true"] i {
+      transform: translateX(16px);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      margin: 22px 0 26px;
+      padding: 16px 14px;
+      resize: vertical;
+      border: 2px solid var(--orange);
+      border-radius: 2px;
+      background: transparent;
+      color: #ffd7a4;
+      caret-color: #ffd7a4;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 1px #ffaa48;
+    }
+
+    textarea::placeholder {
+      color: rgba(243, 239, 228, 0.55);
+    }
+
+    p {
+      margin: 0 0 14px;
+      font-size: 17px;
+      color: var(--ink-dim);
+    }
+
+    p strong {
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    p em {
+      font-style: italic;
+    }
+
+    .cmd {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 12px;
+      flex-wrap: wrap;
+    }
+
+    code {
+      display: inline-block;
+      padding: 7px 10px;
+      border: 1.5px solid var(--orange);
+      border-radius: 3px;
+      color: #f0b56a;
+      background: rgba(0, 0, 0, 0.12);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 14.5px;
+    }
+
+    button.copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 10px;
+      border: 1.5px solid var(--orange);
+      border-radius: 3px;
+      background: transparent;
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button.copy:hover {
+      background: rgba(232, 136, 44, 0.12);
+    }
+
+    button.copy.done {
+      color: #ffe3b8;
+    }
+
+    .note {
+      margin-top: 18px;
+      font-style: italic;
+    }
+
+    .hint {
+      margin-top: -12px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 13px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 18px;
+      margin: -8px 0 8px;
+      color: var(--muted);
+      font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <h1>Mac OS Key-Repeat Tester</h1>
+    <p class="lede">Tune key-repeat preferences without restarting or logging out of your computer… <em>more than
+        once</em> 😅</p>
+    <hr />
+
+    <div class="control">
+      <div class="label">
+        <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <path
+            d="M7.5 1.5v2M7.5 11.5v2M2.4 2.4l1.4 1.4M11.2 11.2l1.4 1.4M1.5 7.5h2M11.5 7.5h2M2.4 12.6l1.4-1.4M11.2 3.8l1.4-1.4"
+            stroke="#f3efe4" stroke-width="1.2" stroke-linecap="round" />
+          <circle cx="7.5" cy="7.5" r="2.2" stroke="#f3efe4" stroke-width="1.2" />
+        </svg>
+        <span>Initial delay: <span id="delayLabel">180</span> ms</span>
+      </div>
+      <input id="delay" type="range" min="1" max="20" value="12" />
+    </div>
+
+    <div class="control">
+      <div class="label">
+        <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <path d="M1.5 7.5a6 6 0 1 0 1.2-3.6M2.2 1.8v2.6h2.6" stroke="#f3efe4" stroke-width="1.2"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>Key repeat interval: <span id="repeatLabel">15</span> ms</span>
+      </div>
+      <input id="repeat" type="range" min="1" max="20" value="1" />
+    </div>
+
+    <div class="control">
+      <div class="row">
+        <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <rect x="1.5" y="3.5" width="12" height="8" rx="1" stroke="#f3efe4" stroke-width="1.2" />
+          <path d="M4 8.5h7M5 6.5h1M7 6.5h1M9 6.5h1" stroke="#f3efe4" stroke-width="1.2" stroke-linecap="round" />
+        </svg>
+        <span class="label" style="margin:0">Typing mode</span>
+        <button id="typing" class="switch" type="button" role="switch" aria-checked="true" aria-label="Typing mode">
+          <i></i>
+        </button>
+      </div>
+    </div>
+
+    <textarea id="field" placeholder="Press and hold a key (Implemented in Browser)" spellcheck="false"></textarea>
+    <div class="stats">
+      <span id="formula">InitialKeyRepeat 12 × 15 ms，KeyRepeat 1 × 15 ms</span>
+    </div>
+    <p class="hint">Hold down a letter, number or symbol and it will repeat with the delay above. The system's own key
+      repeat will be discarded, so the speed here is determined only by the slider. When Typing mode is off, releasing
+      the key clears the input box. </p>
+
+    <p>These <em>terminal commands</em> let you set <strong>key-repeat</strong> values below the minimum available in
+      <em>system preferences</em>. Copy them into your terminal to set the chosen key repeat timings:
+    </p>
+
+    <div class="cmd">
+      <code id="cmdDelay">defaults write -g InitialKeyRepeat -int 12</code>
+      <button class="copy" type="button" data-copy="cmdDelay">Copy</button>
+    </div>
+    <div class="cmd">
+      <code id="cmdRepeat">defaults write -g KeyRepeat -int 1</code>
+      <button class="copy" type="button" data-copy="cmdRepeat">Copy</button>
+    </div>
+
+    <p style="margin-top:18px">Copy this command to disable <em>press and hold</em> for special characters:</p>
+    <div class="cmd">
+      <code id="cmdHold">defaults write -g ApplePressAndHoldEnabled -bool false</code>
+      <button class="copy" type="button" data-copy="cmdHold">Copy</button>
+    </div>
+
+    <p class="note">Note: You must log out or restart for these changes to take effect.</p>
+  </main>
+
+  <script>
+    const delayInput = document.getElementById("delay");
+    const repeatInput = document.getElementById("repeat");
+    const delayLabel = document.getElementById("delayLabel");
+    const repeatLabel = document.getElementById("repeatLabel");
+    const field = document.getElementById("field");
+    const typingBtn = document.getElementById("typing");
+    const formula = document.getElementById("formula");
+    const cmdDelay = document.getElementById("cmdDelay");
+    const cmdRepeat = document.getElementById("cmdRepeat");
+
+    const SPECIAL = /^(?:Meta|Control|Alt|Escape|Arrow|Tab|Shift|CapsLock|Home|End|PageUp|PageDown|F\d+|Dead|Unidentified|Process|OS|ContextMenu)/;
+
+    let delayTimer = null;
+    let repeatTimer = null;
+    let heldKey = null;
+    let typingMode = true;
+
+    function tick(input) {
+      return Number(input.value);
+    }
+
+    function paintSlider(input) {
+      const min = Number(input.min);
+      const max = Number(input.max);
+      const pct = ((Number(input.value) - min) / (max - min)) * 100;
+      input.style.setProperty("--pct", pct + "%");
+    }
+
+    function sync() {
+      const delayTick = tick(delayInput);
+      const repeatTick = tick(repeatInput);
+      const delayMs = delayTick * 15;
+      const repeatMs = repeatTick * 15;
+      delayLabel.textContent = delayMs;
+      repeatLabel.textContent = repeatMs;
+      cmdDelay.textContent = "defaults write -g InitialKeyRepeat -int " + delayTick;
+      cmdRepeat.textContent = "defaults write -g KeyRepeat -int " + repeatTick;
+      formula.textContent = "InitialKeyRepeat " + delayTick + " × 15 ms，KeyRepeat " + repeatTick + " × 15 ms";
+      paintSlider(delayInput);
+      paintSlider(repeatInput);
+    }
+
+    function stopRepeat() {
+      clearTimeout(delayTimer);
+      clearInterval(repeatTimer);
+      delayTimer = null;
+      repeatTimer = null;
+      heldKey = null;
+    }
+
+    function insertText(text) {
+      const start = field.selectionStart;
+      const end = field.selectionEnd;
+      const value = field.value;
+      field.value = value.slice(0, start) + text + value.slice(end);
+      const next = start + text.length;
+      field.selectionStart = field.selectionEnd = next;
+    }
+
+    function backspace() {
+      const start = field.selectionStart;
+      const end = field.selectionEnd;
+      const value = field.value;
+      if (start !== end) {
+        field.value = value.slice(0, start) + value.slice(end);
+        field.selectionStart = field.selectionEnd = start;
+        return;
+      }
+      if (start === 0) return;
+      field.value = value.slice(0, start - 1) + value.slice(start);
+      field.selectionStart = field.selectionEnd = start - 1;
+    }
+
+    function applyKey(key) {
+      if (key === "Backspace") backspace();
+      else if (key === "Enter") insertText("\n");
+      else if (key === " ") insertText(" ");
+      else if (key.length === 1) insertText(key);
+    }
+
+    function startHold(key) {
+      stopRepeat();
+      heldKey = key;
+      applyKey(key);
+      const delayMs = tick(delayInput) * 15;
+      const repeatMs = tick(repeatInput) * 15;
+      delayTimer = setTimeout(() => {
+        if (heldKey !== key) return;
+        applyKey(key);
+        repeatTimer = setInterval(() => {
+          if (heldKey !== key) return;
+          applyKey(key);
+        }, repeatMs);
+      }, delayMs);
+    }
+
+    field.addEventListener("keydown", (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (SPECIAL.test(event.key) && event.key !== "Backspace" && event.key !== "Enter") return;
+      if (event.key !== "Backspace" && event.key !== "Enter" && event.key !== " " && event.key.length !== 1) return;
+
+      event.preventDefault();
+      if (event.repeat) return;
+      startHold(event.key);
+    });
+
+    function endHold() {
+      const wasHolding = heldKey !== null;
+      stopRepeat();
+      if (wasHolding && !typingMode) field.value = "";
+    }
+
+    field.addEventListener("keyup", endHold);
+    field.addEventListener("blur", endHold);
+    window.addEventListener("blur", endHold);
+
+    delayInput.addEventListener("input", sync);
+    repeatInput.addEventListener("input", sync);
+
+    typingBtn.addEventListener("click", () => {
+      typingMode = !typingMode;
+      typingBtn.setAttribute("aria-checked", String(typingMode));
+    });
+
+    document.querySelectorAll("button.copy").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = document.getElementById(button.dataset.copy).textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch (err) {
+          const area = document.createElement("textarea");
+          area.value = text;
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+        const old = button.textContent;
+        button.textContent = "Copied";
+        button.classList.add("done");
+        setTimeout(() => {
+          button.textContent = old;
+          button.classList.remove("done");
+        }, 900);
+      });
+    });
+
+    sync();
+  </script>
+</body>
+
+</html>
